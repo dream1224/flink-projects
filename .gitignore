@@ -1,0 +1,5 @@
+# Project exclude paths
+/flink-cdc/target/
+/flink-test/target/
+/gmall-realtime/target/
+/target/
