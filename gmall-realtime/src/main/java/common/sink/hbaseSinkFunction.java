@@ -84,7 +84,9 @@ public class hbaseSinkFunction extends RichSinkFunction<JSONObject> {
                 + "."
                 + sinkTable
                 + " where pk = "
-                + pkValues;
+                + "'"
+                + pkValues
+                + "'";
     }
 
 

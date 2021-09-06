@@ -20,7 +20,7 @@ public class DataUtils {
     public static String makePk(JSONObject value, String sinkPk) {
         JSONObject data = value.getJSONObject("data");
         HashMap<String, Object> dataMap = new HashMap<>();
-        Collection<Object> pkValues = null;
+        ArrayList<Object> pkValues = new ArrayList<>();
 
         // TODO 遍历JSON，将key和value写入Map
         Set<Map.Entry<String, Object>> entries = data.entrySet();
@@ -33,7 +33,7 @@ public class DataUtils {
         // TODO 切割sinkPk,获取主键各部分的列名，根据列名从Map中获取对应的值拼接成主键
         String[] columns = sinkPk.split(",");
         for (String column : columns) {
-            Object values = dataMap.get(column);
+            String values = dataMap.get(column).toString();
             pkValues.add(values);
         }
         return StringUtils.join(pkValues, "-");

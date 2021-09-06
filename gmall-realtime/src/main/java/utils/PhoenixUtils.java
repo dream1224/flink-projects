@@ -12,13 +12,13 @@ public class PhoenixUtils {
 
     public static void executeSql(Connection connection, String sql) throws SQLException {
         PreparedStatement preparedStatement = null;
-
         try {
             // 预编译sql
-            connection.prepareStatement(sql);
+            preparedStatement = connection.prepareStatement(sql);
             // 执行写入数据操作 维度表数据量小可以不用批处理(通过数量或者时间)，历史数据初始化
 //        preparedStatement.addBatch();
             preparedStatement.execute();
+            connection.commit();
         } catch (SQLException e) {
             logger.error("execute sql failure：" + e.getMessage());
             e.printStackTrace();

@@ -107,14 +107,6 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
 
             String operation = jsonObject.getString("type");
 
-            List<String> keyList = new ArrayList<>();
-            // TODO 获取BroadcastState中所有的表集合
-            Iterator<Map.Entry<String, bean.TableConfig>> iterator = broadcastState.iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, bean.TableConfig> next = iterator.next();
-                keyList.add(next.getKey().split("-")[0]);
-            }
-
             if (!"delete".equals(operation)) {
                 // TODO 如果配置表添加或修改数据，则先校验Phoenix表是否存在，如果不存在，则创建Phoenix表
                 if (Constants.SINK_TYPE_HBASE.equals(TableConfig.getSinkType().toLowerCase())) {
@@ -129,14 +121,29 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
             } else {
                 // TODO 如果配置表删除一条数据,则从广播状态中移除该条数据
                 broadcastState.remove(broadcastPk);
-                if (!keyList.contains(TableConfig.getSourceTable())) {
+                logger.info("BroadcastState remove this pk>>>>>>" + broadcastPk);
+                System.out.println("移除广播pk>>>>>> " + broadcastPk);
+
+                List<String> tableList = new ArrayList<>();
+
+                // TODO 获取BroadcastState中所有的表集合
+                Iterator<Map.Entry<String, bean.TableConfig>> iterator = broadcastState.iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, bean.TableConfig> next = iterator.next();
+                    tableList.add(next.getKey().split("-")[0]);
+                }
+
+                for (String table : tableList) {
+                    System.out.println("tableList>>>>>> " + table);
+                }
+                System.out.println("SourceTable>>>>>> " + TableConfig.getSourceTable());
+                if (!tableList.contains(TableConfig.getSourceTable())) {
                     // TODO 如果配置表删除一张表的所有数据则删除这张表
+                    System.out.println("drop table>>>>>>");
                     dropTable(TableConfig.getSinkTable());
                     logger.warn("table " + TableConfig.getSinkTable() + " is dropped");
                     System.out.println("Phoenix表" + TableConfig.getSinkTable() + "已删除");
                 }
-                logger.info("BroadcastState remove this pk>>>>>>" + broadcastPk);
-                System.out.println("广播状态移除pk>>>>>>" + broadcastPk);
             }
         } else {
             logger.warn("config table is empty pls check");
@@ -189,7 +196,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
                 out.collect(value);
             }
         } else {
-            System.out.println("配置表不存在该key>>>>>>" + key);
+            System.out.println("配置表不存在该key>>>>>> " + key);
             logger.warn("configuration don't exist the key" + key);
         }
     }
@@ -202,7 +209,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
      */
     private void filterColumn(JSONObject data, String sinkColumns) {
         // TODO 处理目标字段
-        System.out.println("sinkColumns>>>>>>" + sinkColumns);
+        System.out.println("sinkColumns>>>>>> " + sinkColumns);
         String[] columns = sinkColumns.toLowerCase().split(",");
         // 数组没有contains方法，集合才有
         List<String> columnsList = Arrays.asList(columns);
@@ -233,7 +240,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
                 .append(".")
                 .append(sinkTable);
         String dropTableSql = makeDropTableSql.toString();
-
+        System.out.println("dropTableSql>>>>>> " + dropTableSql);
         // 执行sql
         PhoenixUtils.executeSql(connection, dropTableSql);
     }
