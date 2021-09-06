@@ -4,6 +4,7 @@ import bean.TableConfig;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import common.Constants;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
@@ -13,6 +14,8 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.DataUtils;
+import utils.PhoenixUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,9 +24,9 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
- * * @param <IN1> The input type of the non-broadcast side.
- * * @param <IN2> The input type of the broadcast side.
- * * @param <OUT> The output type of the operator.
+ * * @param <IN1> The input type of the non-broadcast side. 非广播流输入
+ * * @param <IN2> The input type of the broadcast side. 广播流输入
+ * * @param <OUT> The output type of the operator. 输出类型
  */
 @SuppressWarnings("Duplicates")
 public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, String, JSONObject> {
@@ -31,7 +34,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
     private final Logger logger = LoggerFactory.getLogger(TableProcessFunction.class);
     // 定义phoenix连接
     private Connection connection;
-    // 定义OutputTag
+    // 定义OutputTag，侧输出流标签
     private OutputTag<JSONObject> outputTag;
     // 定义Map状态描述器
     private MapStateDescriptor<String, TableConfig> mapStateDescriptor;
@@ -44,20 +47,29 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         this.mapStateDescriptor = mapStateDescriptor;
     }
 
+    /**
+     * 获取Phoenix连接
+     *
+     * @param parameters
+     * @throws Exception
+     */
     @Override
     public void open(Configuration parameters) throws Exception {
         Class.forName(Constants.PHOENIX_DRIVER);
-        connection = DriverManager.getConnection(Constants.PHOENIX_SERVER);
-        if (connection != null) {
-            System.out.println("获取Phoenix连接正常");
-            logger.info("get phoenix connection success");
-        } else {
-            System.out.println("获取Phoenix连接异常");
+        try {
+            connection = DriverManager.getConnection(Constants.PHOENIX_SERVER);
+        } catch (SQLException e) {
             logger.warn("get phoenix connection failure,reset connection");
+            e.printStackTrace();
             this.open(parameters);
         }
     }
 
+    /**
+     * 关闭Phoenix连接
+     *
+     * @throws Exception
+     */
     @Override
     public void close() throws Exception {
         if (connection != null) {
@@ -67,7 +79,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
 
 
     /**
-     * 处理传过来的广播数据
+     * 处理进来的广播数据(配置表)
      *
      * @param value 数据
      * @param ctx   上下文
@@ -87,26 +99,50 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         TableConfig TableConfig = JSON.parseObject(data.toJSONString(), TableConfig.class);
 
         if (TableConfig != null) {
-            // TODO 校验表是否存在，如果不存在，则创建Phoenix表
-            if (Constants.SINK_TYPE_HBASE.equals(TableConfig.getSinkType().toLowerCase())) {
-                checkTable(TableConfig.getSinkTable(),
-                        TableConfig.getSinkColumns(),
-                        TableConfig.getSinkPk(),
-                        TableConfig.getSinkExtend());
-            }
-
             // TODO 将数据写入状态广播处理
             BroadcastState<String, TableConfig> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
 
             // 拼接pk
-            String pk = TableConfig.getSourceTable() + "-" + TableConfig.getOperateType();
+            String broadcastPk = TableConfig.getSourceTable() + "-" + TableConfig.getOperateType();
 
-            broadcastState.put(pk, TableConfig);
+            String operation = jsonObject.getString("type");
 
+            List<String> keyList = new ArrayList<>();
+            // TODO 获取BroadcastState中所有的表集合
+            Iterator<Map.Entry<String, bean.TableConfig>> iterator = broadcastState.iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, bean.TableConfig> next = iterator.next();
+                keyList.add(next.getKey().split("-")[0]);
+            }
+
+            if (!"delete".equals(operation)) {
+                // TODO 如果配置表添加或修改数据，则先校验Phoenix表是否存在，如果不存在，则创建Phoenix表
+                if (Constants.SINK_TYPE_HBASE.equals(TableConfig.getSinkType().toLowerCase())) {
+                    checkTable(TableConfig.getSinkTable(),
+                            TableConfig.getSinkColumns(),
+                            TableConfig.getSinkPk(),
+                            TableConfig.getSinkExtend());
+                }
+                // TODO 将这条数据放入BroadcastState
+                broadcastState.put(broadcastPk, TableConfig);
+
+            } else {
+                // TODO 如果配置表删除一条数据,则从广播状态中移除该条数据
+                broadcastState.remove(broadcastPk);
+                if (!keyList.contains(TableConfig.getSourceTable())) {
+                    // TODO 如果配置表删除一张表的所有数据则删除这张表
+                    dropTable(TableConfig.getSinkTable());
+                    logger.warn("table " + TableConfig.getSinkTable() + " is dropped");
+                    System.out.println("Phoenix表" + TableConfig.getSinkTable() + "已删除");
+                }
+                logger.info("BroadcastState remove this pk>>>>>>" + broadcastPk);
+                System.out.println("广播状态移除pk>>>>>>" + broadcastPk);
+            }
         } else {
             logger.warn("config table is empty pls check");
         }
     }
+
 
     /**
      * 处理主流数据
@@ -125,16 +161,26 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         // 获取数据
         TableConfig tableConfig = broadcastState.get(key);
 
-        // tableProcess 有可能为null,数据里面可能匹配不上表名和操作类型的key
+        // tableProcess有可能为null,数据里面可能匹配不上表名和操作类型的key
         if (tableConfig != null) {
             // 根据配置信息过滤字段
             String sinkColumns = tableConfig.getSinkColumns();
             JSONObject data = value.getJSONObject("data");
-
             filterColumn(data, sinkColumns);
+
+            // 将待写入的表(维表或者事实表),以及操作类型添加至数据中，方便后续操作
             String sinkType = tableConfig.getSinkType();
-            // 将待写入的维表或者事实表添加至数据中，方便后续操作
             value.put("sinkTable", tableConfig.getSinkTable());
+            value.put("type", tableConfig.getOperateType());
+            // 获取pk要拼接的字段
+            String sinkPk = tableConfig.getSinkPk();
+            if (sinkPk == null || sinkPk.equals("")) {
+                logger.error("sinkPk is not allowed empty");
+                return;
+            }
+            String pkValues = DataUtils.makePk(value, sinkPk);
+            // 将pk写入JSON
+            value.put("pk", pkValues);
 
             // 将数据分流，Hbase数据写入侧输出流，Kafka数据写入主流
             if (Constants.SINK_TYPE_HBASE.equals(sinkType)) {
@@ -143,7 +189,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
                 out.collect(value);
             }
         } else {
-            System.out.println("配置表不存在该key " + key);
+            System.out.println("配置表不存在该key>>>>>>" + key);
             logger.warn("configuration don't exist the key" + key);
         }
     }
@@ -156,7 +202,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
      */
     private void filterColumn(JSONObject data, String sinkColumns) {
         // TODO 处理目标字段
-        System.out.println("sinkColumns>>>>>>>" + sinkColumns);
+        System.out.println("sinkColumns>>>>>>" + sinkColumns);
         String[] columns = sinkColumns.toLowerCase().split(",");
         // 数组没有contains方法，集合才有
         List<String> columnsList = Arrays.asList(columns);
@@ -174,6 +220,25 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
     }
 
     /**
+     * 删除表
+     *
+     * @param sinkTable
+     */
+    private void dropTable(String sinkTable) throws SQLException {
+        // 创建删表sql
+        StringBuilder makeDropTableSql = new StringBuilder();
+        makeDropTableSql
+                .append("drop table if exists ")
+                .append(Constants.HBASE_SCHEME)
+                .append(".")
+                .append(sinkTable);
+        String dropTableSql = makeDropTableSql.toString();
+
+        // 执行sql
+        PhoenixUtils.executeSql(connection, dropTableSql);
+    }
+
+    /**
      * 检验表是否存在
      * <p>
      * create table if not exist xx.xx (pk varchar primary key,name varchar ...) xxx;
@@ -188,7 +253,8 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         // TODO 处理主键及扩展字段
         // 字段判空
         if (sinkPk == null || sinkPk.equals("")) {
-            sinkPk = "pk";
+            logger.error("sinkPk is not allowed empty");
+            return;
         }
         if (sinkExtend == null) {
             sinkExtend = "";
@@ -203,12 +269,12 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         String[] columns = sinkColumns.split(",");
         for (int i = 0; i < columns.length; i++) {
             String column = columns[i];
+
             // 如果当前字段为主键
-            if (sinkPk.equals(column)) {
+            if ("pk".equals(column)) {
                 createTableSql
                         .append(column)
-                        .append(" varchar ")
-                        .append("primary key");
+                        .append(" varchar primary key");
             } else {
                 createTableSql.append(column).append(" varchar");
             }
@@ -226,24 +292,7 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
         logger.info("create sql display" + sql);
 
         System.out.println(sql);
-
-        PreparedStatement preparedStatement = null;
-
         // 执行sql建表
-        try {
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            System.out.println("建表失败" + e.getMessage());
-            logger.error("create phoenix table failure：" + e.getMessage());
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        PhoenixUtils.executeSql(connection, sql);
     }
 }
