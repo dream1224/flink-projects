@@ -31,7 +31,7 @@ import java.util.*;
 @SuppressWarnings("Duplicates")
 public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, String, JSONObject> {
     // 定义日志打印器
-    private final Logger logger = LoggerFactory.getLogger(TableProcessFunction.class);
+    private static final Logger logger = LoggerFactory.getLogger(TableProcessFunction.class);
     // 定义phoenix连接
     private Connection connection;
     // 定义OutputTag，侧输出流标签
@@ -124,22 +124,17 @@ public class TableProcessFunction extends BroadcastProcessFunction<JSONObject, S
                 logger.info("BroadcastState remove this pk>>>>>>" + broadcastPk);
                 System.out.println("移除广播pk>>>>>> " + broadcastPk);
 
+                // 创建存储表名的List
                 List<String> tableList = new ArrayList<>();
-
-                // TODO 获取BroadcastState中所有的表集合
+                // TODO 获取BroadcastState存储中所有的表名放入List
                 Iterator<Map.Entry<String, bean.TableConfig>> iterator = broadcastState.iterator();
                 while (iterator.hasNext()) {
                     Map.Entry<String, bean.TableConfig> next = iterator.next();
                     tableList.add(next.getKey().split("-")[0]);
                 }
 
-                for (String table : tableList) {
-                    System.out.println("tableList>>>>>> " + table);
-                }
-                System.out.println("SourceTable>>>>>> " + TableConfig.getSourceTable());
                 if (!tableList.contains(TableConfig.getSourceTable())) {
                     // TODO 如果配置表删除一张表的所有数据则删除这张表
-                    System.out.println("drop table>>>>>>");
                     dropTable(TableConfig.getSinkTable());
                     logger.warn("table " + TableConfig.getSinkTable() + " is dropped");
                     System.out.println("Phoenix表" + TableConfig.getSinkTable() + "已删除");

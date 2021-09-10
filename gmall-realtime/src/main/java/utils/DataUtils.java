@@ -30,7 +30,7 @@ public class DataUtils {
             dataMap.put(next.getKey(), next.getValue());
         }
 
-        // TODO 切割sinkPk,获取主键各部分的列名，根据列名从Map中获取对应的值拼接成主键
+        // TODO 切割sinkPk,获取主键组成部分的列名，根据列名从Map中获取对应的值拼接成主键
         String[] columns = sinkPk.split(",");
         for (String column : columns) {
             String values = dataMap.get(column).toString();

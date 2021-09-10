@@ -12,8 +12,14 @@ public class Constants {
     public static final String KAFKA_DWD_PAGE_TOPIC = "dwd_page_log";
     public static final String KAFKA_DWD_START_TOPIC = "dwd_start_log";
     public static final String KAFKA_DWD_DISPLAY_TOPIC = "dwd_display_log";
+    public static final String KAFKA_DWD_ORDER_INFO_TOPIC = "dwd_order_info";
+    public static final String KAFKA_DWD_ORDER_DETAIL_TOPIC = "dwd_order_detail";
     public static final String UV_GROUP_ID = "uv_group";
     public static final String KAFKA_DWM_UV_TOPIC = "dwm_uv";
+    public static final String KAFKA_DWM_USER_JUMP_DETAIL_TOPIC = "dwm_user_jump_detail";
+    public static final String USER_JUMP_DETAIL_GROUP_ID = "user_jump_detail_group";
+    public static final String KAFKA_ORDER_WIDE = "dwm_order_wide";
+    public static final String ORDER_WIDE_GROUP = "dwm_order_wide_group";
 
     // CK
     public static final long CHECKPOINT_TIME = 5000L;
@@ -38,4 +44,9 @@ public class Constants {
     public static final int PORT = 3306;
     public static final String HOSTNAME = "cluster001";
 
+    // Redis
+    public static final int MAX_TOTAL = 100;
+    public static final int MAX_WAIT_MIllIS = 2000;
+    public static final int MAX_IDLE = 5;
+    public static final int MIN_IDLE = 5;
 }
