@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 
 @Data
 public class OrderWide {
-
     Long detail_id;
     Long order_id;
     Long sku_id;

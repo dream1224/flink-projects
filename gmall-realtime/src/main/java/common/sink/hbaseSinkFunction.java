@@ -1,18 +1,18 @@
 package common.sink;
 
 import com.alibaba.fastjson.JSONObject;
-import common.Constants;
+import common.mapping.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utils.PhoenixUtils;
+import common.conn.DimUtils;
+import common.conn.PhoenixUtils;
 
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Set;
@@ -54,14 +54,21 @@ public class hbaseSinkFunction extends RichSinkFunction<JSONObject> {
     public void invoke(JSONObject value, Context context) throws Exception {
         // 准备写入数据的sql
         JSONObject data = value.getJSONObject("data");
+        // 获取表名和操作类型
         String sinkTable = value.getString("sinkTable");
         String type = value.getString("type");
         String pkValues = value.getString("pk");
 
         if (!"delete".equals(type)) {
+            //当维度数据更新时，需要先删除Redis中已缓存的的数据，不然查询Phoenix和Redis结果会不一致
+            if ("update".equals(type)) {
+                DimUtils.deleteRedis(sinkTable.toUpperCase(), pkValues);
+            }
+
             String upsertSql = createUpsertSql(sinkTable, data, pkValues);
             System.out.println("upsertSql>>>>>>" + upsertSql);
             logger.info("upsertSql is>>>>>>" + upsertSql);
+
             // 执行插入语句
             PhoenixUtils.executeSql(connection, upsertSql);
         } else {
@@ -73,10 +80,12 @@ public class hbaseSinkFunction extends RichSinkFunction<JSONObject> {
     }
 
     /**
-     * 生成delete Sql
-     *
-     * @param sinkTable
-     * @return
+     * @Description 拼接delete Sql
+     * @Author Lhr
+     * @Date 2021/11/2 10:50
+     * @param: sinkTable
+     * @param: pkValues
+     * @return: java.lang.String
      */
     private String createDeleteSql(String sinkTable, String pkValues) {
         return "delete from "

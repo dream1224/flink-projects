@@ -3,8 +3,7 @@ package common.process;
 import bean.TableConfig;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import common.Constants;
-import org.apache.commons.lang3.StringUtils;
+import common.mapping.Constants;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
@@ -15,11 +14,10 @@ import org.apache.flink.util.OutputTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.DataUtils;
-import utils.PhoenixUtils;
+import common.conn.PhoenixUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 

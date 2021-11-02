@@ -2,7 +2,7 @@ package operator.dwm;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import common.Constants;
+import common.mapping.Constants;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.cep.CEP;
@@ -18,8 +18,7 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
-import utils.CKUtils;
-import utils.KafkaUtils;
+import common.conn.KafkaUtils;
 
 import java.time.Duration;
 import java.util.List;
@@ -36,7 +35,7 @@ public class UserJumpDetailOperator {
 //        CKUtils.setCk(env);
 
         // 读取Kafka dwd_page_log主题数据
-        DataStreamSource<String> pageStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.KAFKA_DWD_PAGE_TOPIC, Constants.USER_JUMP_DETAIL_GROUP_ID));
+        DataStreamSource<String> pageStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.USER_JUMP_DETAIL_GROUP_ID));
 
         // 转换为JSON对象并提取数据中的时间戳生成watermark,防止任务挂掉，造成影响
         SingleOutputStreamOperator<JSONObject> pageJsonStream = pageStream.map(json -> JSON.parseObject(json));
@@ -93,7 +92,7 @@ public class UserJumpDetailOperator {
 
         // 写入Kafka
         dataStream.print();
-        dataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.KAFKA_DWM_USER_JUMP_DETAIL_TOPIC));
+        dataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.DWM_USER_JUMP_DETAIL_TOPIC));
 
         env.execute();
     }

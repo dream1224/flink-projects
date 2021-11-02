@@ -1,6 +1,6 @@
-package utils;
+package common.conn;
 
-import common.Constants;
+import common.mapping.Constants;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;

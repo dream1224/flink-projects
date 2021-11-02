@@ -31,12 +31,12 @@ public class WordCount {
         envStream.execute();
     }
 
-    private static class MyFlatMapper implements FlatMapFunction<String, Tuple2<String,Integer>> {
+    private static class MyFlatMapper implements FlatMapFunction<String, Tuple2<String, Integer>> {
         @Override
         public void flatMap(String s, Collector<Tuple2<String, Integer>> collector) throws Exception {
             String[] words = s.split(" ");
             for (String word : words) {
-                collector.collect(new Tuple2<String, Integer>(word,1));
+                collector.collect(new Tuple2<String, Integer>(word, 1));
             }
         }
     }

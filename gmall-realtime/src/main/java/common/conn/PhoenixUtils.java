@@ -1,4 +1,4 @@
-package utils;
+package common.conn;
 
 import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;

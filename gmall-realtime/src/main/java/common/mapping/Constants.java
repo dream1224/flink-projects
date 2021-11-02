@@ -1,26 +1,29 @@
-package common;
+package common.mapping;
 
 
 public class Constants {
     // KAFKA
     public static final String BOOTSTRAP_SERVER = "cluster001:9092,cluster002:9092,cluster003:9092";
     public static final String DEFAULT_DWD_TOPIC = "dwd_default_topic";
-    public static final String KAFKA_ODS_LOG_TOPIC = "ods_base_log";
-    public static final String KAFKA_LOG_GROUP_ID = "log-group";
-    public static final String KAFKA_DB_GROUP_ID = "db-group";
-    public static final String KAFKA_ODS_DB_TOPIC = "ods_base_db";
-    public static final String KAFKA_DWD_PAGE_TOPIC = "dwd_page_log";
-    public static final String KAFKA_DWD_START_TOPIC = "dwd_start_log";
-    public static final String KAFKA_DWD_DISPLAY_TOPIC = "dwd_display_log";
-    public static final String KAFKA_DWD_ORDER_INFO_TOPIC = "dwd_order_info";
-    public static final String KAFKA_DWD_ORDER_DETAIL_TOPIC = "dwd_order_detail";
+    public static final String ODS_LOG_TOPIC = "ods_base_log";
+    public static final String LOG_GROUP_ID = "log-group";
+    public static final String DB_GROUP_ID = "db-group";
+    public static final String ODS_DB_TOPIC = "ods_base_db";
+    public static final String DWD_PAGE_TOPIC = "dwd_page_log";
+    public static final String DWD_START_TOPIC = "dwd_start_log";
+    public static final String DWD_DISPLAY_TOPIC = "dwd_display_log";
+    public static final String DWD_ORDER_INFO_TOPIC = "dwd_order_info";
+    public static final String DWD_ORDER_DETAIL_TOPIC = "dwd_order_detail";
     public static final String UV_GROUP_ID = "uv_group";
-    public static final String KAFKA_DWM_UV_TOPIC = "dwm_uv";
-    public static final String KAFKA_DWM_USER_JUMP_DETAIL_TOPIC = "dwm_user_jump_detail";
+    public static final String DWM_UV_TOPIC = "dwm_uv";
+    public static final String DWM_USER_JUMP_DETAIL_TOPIC = "dwm_user_jump_detail";
     public static final String USER_JUMP_DETAIL_GROUP_ID = "user_jump_detail_group";
-    public static final String KAFKA_ORDER_WIDE = "dwm_order_wide";
+    public static final String DWM_ORDER_WIDE = "dwm_order_wide";
     public static final String ORDER_WIDE_GROUP = "dwm_order_wide_group";
-
+    public static final String DWD_PAYMENT_WIDE = "dwd_payment_wide";
+    public static final String DWM_PAYMENT_WIDE = "dwm_payment_wide";
+    public static final String PAYMENT_GROUP = "dwm_payment_group";
+    public static final String VISITOR_GROUP = "visitor_group";
     // CK
     public static final long CHECKPOINT_TIME = 5000L;
     public static final long CHECKPOINT_OUT_TIME = 10000L;
