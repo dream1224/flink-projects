@@ -21,7 +21,7 @@ import java.util.HashMap;
 public class TransformTest {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(2);
+        env.setParallelism(1);
         DataStreamSource<String> fileSource = env.readTextFile("/Users/lihaoran/Documents/flink-projects/flink-test/src/main/resources/word.txt");
         SingleOutputStreamOperator<Integer> map = fileSource.map(new MapFunction<String, Integer>() {
             @Override
@@ -51,23 +51,25 @@ public class TransformTest {
         });
 //        filterStream.print("filter");
 
-        fileSource.map(new RichMapFunction<String, Tuple2<String,Integer>>() {
+        fileSource.map(new RichMapFunction<String, Tuple2<String, Integer>>() {
             @Override
             public void open(Configuration parameters) throws Exception {
-                System.out.println("open");
+//                System.out.println("open");
             }
 
             @Override
             public Tuple2<String, Integer> map(String s) throws Exception {
-                return new Tuple2<String,Integer>(s,getRuntimeContext().getIndexOfThisSubtask());
+                return new Tuple2<String, Integer>(s, getRuntimeContext().getIndexOfThisSubtask());
             }
 
             @Override
             public void close() throws Exception {
-                System.out.println("close");
+//                System.out.println("close");
             }
         }).print();
 
         env.execute();
+        System.out.println(env);
+        System.out.println(env.getConfig());
     }
 }

@@ -1,8 +1,6 @@
-import common.Constants;
-
 import java.sql.*;
 
-public class Test {
+public class PhoenixTest {
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         try {
 

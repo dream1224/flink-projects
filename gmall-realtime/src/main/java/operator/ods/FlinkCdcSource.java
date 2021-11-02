@@ -3,12 +3,11 @@ package operator.ods;
 import com.alibaba.ververica.cdc.connectors.mysql.MySQLSource;
 import com.alibaba.ververica.cdc.connectors.mysql.table.StartupOptions;
 import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction;
-import common.Constants;
+import common.mapping.Constants;
 import common.serialization.UDFSerialization;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import utils.CKUtils;
-import utils.KafkaUtils;
+import common.conn.KafkaUtils;
 
 /**
  * @author lihaoran
@@ -35,7 +34,7 @@ public class FlinkCdcSource {
                 .build();
         DataStreamSource<String> dataStreamSource = env.addSource(sourceFunction);
         dataStreamSource.print();
-        dataStreamSource.addSink(KafkaUtils.makeKafkaProducer(Constants.KAFKA_ODS_DB_TOPIC));
+        dataStreamSource.addSink(KafkaUtils.makeKafkaProducer(Constants.ODS_DB_TOPIC));
         env.execute();
     }
 }

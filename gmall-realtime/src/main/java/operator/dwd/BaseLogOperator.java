@@ -2,7 +2,7 @@ package operator.dwd;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import common.Constants;
+import common.mapping.Constants;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.configuration.Configuration;
@@ -17,7 +17,7 @@ import org.apache.flink.util.OutputTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.CKUtils;
-import utils.KafkaUtils;
+import common.conn.KafkaUtils;
 
 /**
  * @author lihaoran
@@ -37,7 +37,7 @@ public class BaseLogOperator {
 
         // 读取kafka数据
         DataStreamSource<String> logSource = env
-                .addSource(KafkaUtils.makeKafkaConsumer(Constants.KAFKA_ODS_LOG_TOPIC, Constants.KAFKA_LOG_GROUP_ID));
+                .addSource(KafkaUtils.makeKafkaConsumer(Constants.ODS_LOG_TOPIC, Constants.LOG_GROUP_ID));
 
         //process将数据转为Json，遇到脏数据转到侧输出流 是因为有脏数据，可能解析不成，map必须有返回值，所以不用map转
         OutputTag<String> dirty = new OutputTag<String>("dirty") {
@@ -148,9 +148,9 @@ public class BaseLogOperator {
         displayDataStream.print("display>>>>>>>>");
 
         // 写入kafka
-        pageDataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.KAFKA_DWD_PAGE_TOPIC));
-        startDataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.KAFKA_DWD_START_TOPIC));
-        displayDataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.KAFKA_DWD_DISPLAY_TOPIC));
+        pageDataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.DWD_PAGE_TOPIC));
+        startDataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.DWD_START_TOPIC));
+        displayDataStream.addSink(KafkaUtils.makeKafkaProducer(Constants.DWD_DISPLAY_TOPIC));
         env.execute();
     }
 }

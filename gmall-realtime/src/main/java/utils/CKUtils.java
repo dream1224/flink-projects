@@ -1,6 +1,6 @@
 package utils;
 
-import common.Constants;
+import common.mapping.Constants;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;

@@ -8,10 +8,11 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>gmall-realtime</artifactId>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
         <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -111,6 +112,28 @@
             <artifactId>flink-connector-jdbc_${scala.version}</artifactId>
             <version>${flink.version}</version>
         </dependency>
+
+        <!--commons-beanutils是Apache开源组织提供的用于操作JAVA BEAN的工具包。
+使用commons-beanutils，我们可以很方便的对bean对象的属性进行操作-->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
+        <!--Guava工程包含了若干被Google的Java项目广泛依赖的核心库,方便开发-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>29.0-jre</version>
+        </dependency>
+
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.phoenix</groupId>
             <artifactId>phoenix-spark</artifactId>
@@ -125,6 +148,7 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${maven.build.timestamp}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
