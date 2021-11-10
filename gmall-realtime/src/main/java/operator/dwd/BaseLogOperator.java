@@ -37,7 +37,7 @@ public class BaseLogOperator {
 
         // 读取kafka数据
         DataStreamSource<String> logSource = env
-                .addSource(KafkaUtils.makeKafkaConsumer(Constants.ODS_LOG_TOPIC, Constants.LOG_GROUP_ID));
+                .addSource(KafkaUtils.makeKafkaConsumer(Constants.ODS_LOG_TOPIC, Constants.GROUP_LOG));
 
         //process将数据转为Json，遇到脏数据转到侧输出流 是因为有脏数据，可能解析不成，map必须有返回值，所以不用map转
         OutputTag<String> dirty = new OutputTag<String>("dirty") {

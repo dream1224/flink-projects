@@ -27,13 +27,12 @@ public class VisitOperator {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-
 //        CKUtils.setCk(env);
 
         // 读取kafka数据
-        DataStreamSource<String> pageStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.VISITOR_GROUP));
-        DataStreamSource<String> uvStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWM_UV_TOPIC, Constants.VISITOR_GROUP));
-        DataStreamSource<String> jumpStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWM_USER_JUMP_DETAIL_TOPIC, Constants.VISITOR_GROUP));
+        DataStreamSource<String> pageStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.GROUP_VISITOR));
+        DataStreamSource<String> uvStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWM_UV_TOPIC, Constants.GROUP_VISITOR));
+        DataStreamSource<String> jumpStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWM_USER_JUMP_DETAIL_TOPIC, Constants.GROUP_VISITOR));
 
         // 将各流转换为统一格式
         SingleOutputStreamOperator<VisitorStats> visitorStatsWithPV = pageStream.map(line -> {

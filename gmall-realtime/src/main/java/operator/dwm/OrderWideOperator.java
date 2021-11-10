@@ -38,8 +38,8 @@ public class OrderWideOperator {
 //        CKUtils.setCk(env);
 
         // TODO 读取Kafka dwd_order_info和dwd_order_detail主题的数据
-        DataStreamSource<String> orderInfoStrStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_ORDER_INFO_TOPIC, Constants.ORDER_WIDE_GROUP));
-        DataStreamSource<String> orderDetailStrStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_ORDER_DETAIL_TOPIC, Constants.ORDER_WIDE_GROUP));
+        DataStreamSource<String> orderInfoStrStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_ORDER_INFO_TOPIC, Constants.GROUP_ORDER_WIDE));
+        DataStreamSource<String> orderDetailStrStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_ORDER_DETAIL_TOPIC, Constants.GROUP_ORDER_WIDE));
 
         // TODO 将两个流转换为POJO类型，并提取时间戳生成watermark
         SingleOutputStreamOperator<OrderInfo> orderInfoWatermarkStream = orderInfoStrStream.map(line -> {

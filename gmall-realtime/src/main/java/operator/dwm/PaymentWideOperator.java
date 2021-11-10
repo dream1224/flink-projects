@@ -30,10 +30,10 @@ public class PaymentWideOperator {
 
 //        CKUtils.setCk(env);
         // 读取订单宽表数据
-        DataStreamSource<String> orderWideStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWM_ORDER_WIDE, Constants.ORDER_WIDE_GROUP));
+        DataStreamSource<String> orderWideStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWM_ORDER_WIDE, Constants.GROUP_ORDER_WIDE));
 
         // 读取支付表数据
-        DataStreamSource<String> paymentStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAYMENT_WIDE, Constants.PAYMENT_GROUP));
+        DataStreamSource<String> paymentStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAYMENT_WIDE, Constants.GROUP_PAYMENT));
 
         // 将两个流转换为POJO类型，并提取时间戳，生成watermark
         SingleOutputStreamOperator<OrderWide> orderWideWatermark = orderWideStream.map(orderWide -> JSONObject.parseObject(orderWide, OrderWide.class)).assignTimestampsAndWatermarks(WatermarkStrategy.<OrderWide>forBoundedOutOfOrderness(Duration.ofSeconds(1)).withTimestampAssigner(new SerializableTimestampAssigner<OrderWide>() {

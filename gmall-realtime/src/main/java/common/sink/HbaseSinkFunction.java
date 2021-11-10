@@ -19,8 +19,8 @@ import java.util.Set;
 
 
 @SuppressWarnings("Duplicates")
-public class hbaseSinkFunction extends RichSinkFunction<JSONObject> {
-    private static final Logger logger = LoggerFactory.getLogger(hbaseSinkFunction.class);
+public class HbaseSinkFunction extends RichSinkFunction<JSONObject> {
+    private static final Logger logger = LoggerFactory.getLogger(HbaseSinkFunction.class);
     //定义Phoenix连接
     private Connection connection;
 

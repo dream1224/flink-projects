@@ -35,7 +35,7 @@ public class UserJumpDetailOperator {
 //        CKUtils.setCk(env);
 
         // 读取Kafka dwd_page_log主题数据
-        DataStreamSource<String> pageStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.USER_JUMP_DETAIL_GROUP_ID));
+        DataStreamSource<String> pageStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.GROUP_USER_JUMP_DETAIL));
 
         // 转换为JSON对象并提取数据中的时间戳生成watermark,防止任务挂掉，造成影响
         SingleOutputStreamOperator<JSONObject> pageJsonStream = pageStream.map(json -> JSON.parseObject(json));

@@ -24,7 +24,7 @@ public class UniqueVisitorOperator {
         env.setParallelism(1);
 
         // 读取kafka dwd_page_log 主题数据
-        DataStreamSource<String> DwdPageLogStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.UV_GROUP_ID));
+        DataStreamSource<String> DwdPageLogStream = env.addSource(KafkaUtils.makeKafkaConsumer(Constants.DWD_PAGE_TOPIC, Constants.GROUP_UV));
 
         // 将数据转为JSON对象
         SingleOutputStreamOperator<JSONObject> jsonStream = DwdPageLogStream.map(JSON::parseObject);
