@@ -52,4 +52,7 @@ public class Constants {
     public static final int MAX_WAIT_MIllIS = 2000;
     public static final int MAX_IDLE = 5;
     public static final int MIN_IDLE = 5;
+
+    //
+    public static final String DB_PROPERTY = "db.properties";
 }
